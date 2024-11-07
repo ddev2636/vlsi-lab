@@ -1,4 +1,4 @@
-timescale 1ns / 1ps
+`timescale 1ns / 1ps
 module piso_shift_register (
     input wire clk,
     input wire reset,
