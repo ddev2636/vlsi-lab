@@ -1,33 +1,32 @@
 `timescale 1ns / 1ps
-
-module moore_fsm_tb;
-
-    reg clk, reset, in;
-    wire out;
-
-    moore_fsm uut (
-        .clk(clk),
-        .reset(reset),
+module moore_machine_tb;
+    reg clk;
+    reg reset;
+    reg in;
+    wire [3:0] out;
+    moore_machine uut (.clk(clk),.reset(reset),
         .in(in),
         .out(out)
     );
-
     initial begin
         clk = 0;
-        forever #5 clk = ~clk;
-    end
-
-    initial begin
-        reset = 1; in = 0;
-        #10 reset = 0; in = 1;
+        reset = 1;
+        in = 0;
+        #5 reset = 0;
+        #10 in = 0;
+        #10 in = 1;
+        #10 in = 1;
+        #10 in = 0;
+        #10 in = 0;
+        #10 in = 1;
+        #10 in = 0;
+        #10 in = 1;
         #10 in = 0;
         #10 in = 1;
         #10 in = 1;
         #10 in = 0;
         #10 $finish;
     end
-
-    initial begin
-        $monitor("Time = %0dns, reset = %b, in = %b, out = %b", $time, reset, in, out);
-    end
+    always #5 clk = ~clk;
 endmodule
+

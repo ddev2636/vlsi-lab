@@ -1,33 +1,29 @@
 `timescale 1ns / 1ps
 
-module mealy_fsm_tb;
-
+module mealy_machine_tb;
     reg clk, reset, in;
-    wire out;
-
-    mealy_fsm uut (
-        .clk(clk),
-        .reset(reset),
-        .in(in),
-        .out(out)
-    );
-
+    wire [3:0] out;
+    mealy_machine uut (.clk(clk), .reset(reset),
+     .in(in), .out(out));
     initial begin
-        clk = 0;
-        forever #5 clk = ~clk;
+        clk = 0; reset = 1; in = 0;
+        #5 reset = 0; 
+        #10 in = 1; 
+        #10 in = 1; 
+        #10 in = 0; 
+        #10 in = 1; 
+        #10 in = 1; 
+        #10 in = 0; 
+        #10 in = 0; 
+        #10 in = 1; 
+        #10 in = 0; 
+        #10 in = 0; 
+        #10 in = 1; 
+        #10 in = 1; 
+        #10 in = 0; 
+        #10 $finish; 
     end
-
-    initial begin
-        reset = 1; in = 0;
-        #10 reset = 0; in = 1;
-        #10 in = 0;
-        #10 in = 1;
-        #10 in = 1;
-        #10 in = 0;
-        #10 $finish;
-    end
-
-    initial begin
-        $monitor("Time = %0dns, reset = %b, in = %b, out = %b", $time, reset, in, out);
-    end
+    always #5 clk = ~clk;
 endmodule
+
+
