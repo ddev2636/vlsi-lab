@@ -1,112 +1,74 @@
 import os
 
-# Create the directory for traffic light controller modules if it doesn't exist
-os.makedirs("traffic_light_controller", exist_ok=True)
+# Create the counters directory if it doesn't exist
+os.makedirs("counters", exist_ok=True)
 
-# Traffic Light Controller Verilog Code
-traffic_light_controller_code = """`timescale 1ns / 1ps
+# Define Verilog code for the MOD-10 counter
+mod_10_counter_code = """`timescale 1ns / 1ps
 
-module traffic_light_controller (
+module mod_10_counter (
     input wire clk,
     input wire reset,
-    output reg [2:0] main_road, // 3-bit output for Main road lights: Red-Yellow-Green
-    output reg [2:0] side_road  // 3-bit output for Side road lights: Red-Yellow-Green
+    output reg [3:0] count
 );
 
-    typedef enum reg [1:0] {
-        GREEN = 2'b00,
-        YELLOW = 2'b01,
-        RED = 2'b10
-    } state_t;
-
-    state_t state_main, state_side;
-    integer timer;
-
     always @(posedge clk or posedge reset) begin
-        if (reset) begin
-            state_main <= GREEN;
-            state_side <= RED;
-            timer <= 0;
-        end else begin
-            timer <= timer + 1;
-
-            case (state_main)
-                GREEN: if (timer >= 10) begin
-                    state_main <= YELLOW;
-                    timer <= 0;
-                end
-                YELLOW: if (timer >= 2) begin
-                    state_main <= RED;
-                    state_side <= GREEN;
-                    timer <= 0;
-                end
-                RED: if (timer >= 10) begin
-                    state_main <= GREEN;
-                    state_side <= RED;
-                    timer <= 0;
-                end
-            endcase
-        end
+        if (reset)
+            count <= 4'b0000;
+        else if (count == 4'b1001)  // When count reaches 9, reset to 0
+            count <= 4'b0000;
+        else
+            count <= count + 1;
     end
-
-    always @(*) begin
-        case (state_main)
-            GREEN: main_road = 3'b001;
-            YELLOW: main_road = 3'b010;
-            RED: main_road = 3'b100;
-            default: main_road = 3'b000;
-        endcase
-
-        case (state_side)
-            GREEN: side_road = 3'b001;
-            YELLOW: side_road = 3'b010;
-            RED: side_road = 3'b100;
-            default: side_road = 3'b000;
-        endcase
-    end
-
 endmodule
 """
 
-# Traffic Light Controller Testbench
-traffic_light_controller_tb_code = """`timescale 1ns / 1ps
+# Define Verilog testbench code for the MOD-10 counter
+mod_10_counter_tb = """`timescale 1ns / 1ps
 
-module traffic_light_controller_tb;
+module mod_10_counter_tb;
 
     reg clk;
     reg reset;
-    wire [2:0] main_road;
-    wire [2:0] side_road;
+    wire [3:0] count;
 
-    traffic_light_controller uut (
+    // Instantiate the mod_10_counter module
+    mod_10_counter uut (
         .clk(clk),
         .reset(reset),
-        .main_road(main_road),
-        .side_road(side_road)
+        .count(count)
     );
 
-    initial begin
-        clk = 0;
-        forever #5 clk = ~clk;
-    end
+    // Clock generation (period of 10ns)
+    initial clk = 0;
+    always #5 clk = ~clk;
 
+    // Test sequence
     initial begin
-        $monitor("Time = %0dns, main_road = %b, side_road = %b", $time, main_road, side_road);
+        $monitor("Time = %0dns, Reset = %b, Count = %b", $time, reset, count);
+
+        // Initial conditions
         reset = 1; #10;
-        reset = 0; #100;
+        reset = 0; #10;
 
-        #200;
-        $finish;
+        // Allow counter to count up to 10 cycles
+        #100;
+
+        // Assert reset
+        reset = 1; #10;
+        reset = 0; #10;
+
+        #50 $finish;  // End simulation
     end
-
 endmodule
 """
 
-# Write Verilog code and testbench to files in the traffic_light_controller directory
-with open("traffic_light_controller/traffic_light_controller.v", "w") as file:
-    file.write(traffic_light_controller_code)
+# Write the Verilog code to a file in the counters directory
+with open("counters/mod_10_counter.v", "w") as f:
+    f.write(mod_10_counter_code)
 
-with open("traffic_light_controller/traffic_light_controller_tb.v", "w") as file:
-    file.write(traffic_light_controller_tb_code)
+# Write the Verilog testbench to a file in the counters directory
+with open("counters/mod_10_counter_tb.v", "w") as f:
+    f.write(mod_10_counter_tb)
 
-print("Standalone Verilog files and testbench for Traffic Light Controller created successfully.")
+print("MOD-10 counter Verilog module and testbench created in the counters folder.")

@@ -10,7 +10,7 @@ always @(posedge clk or posedge reset) begin
     if (reset)
         count <= 4'b0000;
     else if (enable)
-        count <= count + 1;
+        count <= (count==4'b1001) 0 :count + 1;
 end
 
 endmodule
