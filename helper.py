@@ -1,47 +1,58 @@
 import os
 
-# Create the comparator directory if it doesn't exist
-os.makedirs("comparator", exist_ok=True)
+# Create the logic_gates directory if it doesn't exist
+os.makedirs("logic_gates", exist_ok=True)
 
-# Define Verilog code templates for different comparators
-comparators = {
-    "comparator_1bit": {
+# Define Verilog code templates for XOR and AND-OR using multiplexers
+modules = {
+    "three_input_xor_mux": {
         "code": """`timescale 1ns / 1ps
 
-module comparator_1bit (
+module three_input_xor_mux (
     input wire a,
     input wire b,
-    output wire eq,
-    output wire lt,
-    output wire gt
+    input wire c,
+    output wire y
 );
-    assign eq = (a == b);
-    assign lt = (a < b);
-    assign gt = (a > b);
+    wire [3:0] mux_inputs;
+    
+    assign mux_inputs[0] = 0;   // 000 -> 0
+    assign mux_inputs[1] = 1;   // 001 -> 1
+    assign mux_inputs[2] = 1;   // 010 -> 1
+    assign mux_inputs[3] = 0;   // 011 -> 0
+    assign mux_inputs[4] = 1;   // 100 -> 1
+    assign mux_inputs[5] = 0;   // 101 -> 0
+    assign mux_inputs[6] = 0;   // 110 -> 0
+    assign mux_inputs[7] = 1;   // 111 -> 1
+
+    assign y = mux_inputs[{a, b, c}];
 endmodule
 """,
         "tb": """`timescale 1ns / 1ps
 
-module comparator_1bit_tb;
+module three_input_xor_mux_tb;
 
-    reg a, b;
-    wire eq, lt, gt;
+    reg a, b, c;
+    wire y;
 
-    comparator_1bit uut (
+    three_input_xor_mux uut (
         .a(a),
         .b(b),
-        .eq(eq),
-        .lt(lt),
-        .gt(gt)
+        .c(c),
+        .y(y)
     );
 
     initial begin
-        $monitor("Time = %0dns, a = %b, b = %b, eq = %b, lt = %b, gt = %b", $time, a, b, eq, lt, gt);
-        
-        a = 0; b = 0; #10;
-        a = 0; b = 1; #10;
-        a = 1; b = 0; #10;
-        a = 1; b = 1; #10;
+        $monitor("Time = %0dns, a = %b, b = %b, c = %b, y = %b", $time, a, b, c, y);
+
+        a = 0; b = 0; c = 0; #10;
+        a = 0; b = 0; c = 1; #10;
+        a = 0; b = 1; c = 0; #10;
+        a = 0; b = 1; c = 1; #10;
+        a = 1; b = 0; c = 0; #10;
+        a = 1; b = 0; c = 1; #10;
+        a = 1; b = 1; c = 0; #10;
+        a = 1; b = 1; c = 1; #10;
 
         $finish;
     end
@@ -49,87 +60,54 @@ module comparator_1bit_tb;
 endmodule
 """
     },
-    "comparator_2bit": {
+    "three_input_and_or_mux": {
         "code": """`timescale 1ns / 1ps
 
-module comparator_2bit (
-    input wire [1:0] a,
-    input wire [1:0] b,
-    output wire eq,
-    output wire lt,
-    output wire gt
+module three_input_and_or_mux (
+    input wire a,
+    input wire b,
+    input wire c,
+    output wire y
 );
-    assign eq = (a == b);
-    assign lt = (a < b);
-    assign gt = (a > b);
+    wire [3:0] mux_inputs;
+
+    assign mux_inputs[0] = 0;  // 000 -> 0
+    assign mux_inputs[1] = 0;  // 001 -> 0
+    assign mux_inputs[2] = 0;  // 010 -> 0
+    assign mux_inputs[3] = 1;  // 011 -> 1
+    assign mux_inputs[4] = 0;  // 100 -> 0
+    assign mux_inputs[5] = 1;  // 101 -> 1
+    assign mux_inputs[6] = 1;  // 110 -> 1
+    assign mux_inputs[7] = 1;  // 111 -> 1
+
+    assign y = mux_inputs[{a, b, c}];
 endmodule
 """,
         "tb": """`timescale 1ns / 1ps
 
-module comparator_2bit_tb;
+module three_input_and_or_mux_tb;
 
-    reg [1:0] a, b;
-    wire eq, lt, gt;
+    reg a, b, c;
+    wire y;
 
-    comparator_2bit uut (
+    three_input_and_or_mux uut (
         .a(a),
         .b(b),
-        .eq(eq),
-        .lt(lt),
-        .gt(gt)
+        .c(c),
+        .y(y)
     );
 
     initial begin
-        $monitor("Time = %0dns, a = %b, b = %b, eq = %b, lt = %b, gt = %b", $time, a, b, eq, lt, gt);
-        
-        a = 2'b00; b = 2'b00; #10;
-        a = 2'b01; b = 2'b10; #10;
-        a = 2'b11; b = 2'b10; #10;
-        a = 2'b01; b = 2'b01; #10;
+        $monitor("Time = %0dns, a = %b, b = %b, c = %b, y = %b", $time, a, b, c, y);
 
-        $finish;
-    end
-
-endmodule
-"""
-    },
-    "comparator_4bit": {
-        "code": """`timescale 1ns / 1ps
-
-module comparator_4bit (
-    input wire [3:0] a,
-    input wire [3:0] b,
-    output wire eq,
-    output wire lt,
-    output wire gt
-);
-    assign eq = (a == b);
-    assign lt = (a < b);
-    assign gt = (a > b);
-endmodule
-""",
-        "tb": """`timescale 1ns / 1ps
-
-module comparator_4bit_tb;
-
-    reg [3:0] a, b;
-    wire eq, lt, gt;
-
-    comparator_4bit uut (
-        .a(a),
-        .b(b),
-        .eq(eq),
-        .lt(lt),
-        .gt(gt)
-    );
-
-    initial begin
-        $monitor("Time = %0dns, a = %b, b = %b, eq = %b, lt = %b, gt = %b", $time, a, b, eq, lt, gt);
-        
-        a = 4'b0000; b = 4'b0001; #10;
-        a = 4'b1000; b = 4'b0111; #10;
-        a = 4'b1111; b = 4'b1111; #10;
-        a = 4'b0101; b = 4'b1010; #10;
+        a = 0; b = 0; c = 0; #10;
+        a = 0; b = 0; c = 1; #10;
+        a = 0; b = 1; c = 0; #10;
+        a = 0; b = 1; c = 1; #10;
+        a = 1; b = 0; c = 0; #10;
+        a = 1; b = 0; c = 1; #10;
+        a = 1; b = 1; c = 0; #10;
+        a = 1; b = 1; c = 1; #10;
 
         $finish;
     end
@@ -139,11 +117,11 @@ endmodule
     }
 }
 
-# Generate Verilog code and testbench files for each comparator
-for comp_name, comp_data in comparators.items():
-    with open(f"comparator/{comp_name}.v", "w") as f:
-        f.write(comp_data["code"])
-    with open(f"comparator/{comp_name}_tb.v", "w") as f:
-        f.write(comp_data["tb"])
+# Generate Verilog code and testbench files for each module
+for module_name, module_data in modules.items():
+    with open(f"logic_gates/{module_name}.v", "w") as f:
+        f.write(module_data["code"])
+    with open(f"logic_gates/{module_name}_tb.v", "w") as f:
+        f.write(module_data["tb"])
 
-print("Standalone Verilog files and testbenches for 1-bit, 2-bit, and 4-bit comparators created in the comparator folder.")
+print("Standalone Verilog files and testbenches for three-input XOR and AND-OR logic using multiplexers created in the logic_gates folder.")
